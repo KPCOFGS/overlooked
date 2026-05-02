@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./screenshots/icon.svg" alt="overlooked icon" width="120" height="120" />
+<img src="./screenshots/logo.svg" alt="overlooked logo" width="120" height="120" />
 
 # overlooked
 

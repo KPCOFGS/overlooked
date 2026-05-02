@@ -12,7 +12,7 @@ use uuid::Uuid;
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
 const MAIN_CSS: Asset = asset!("/assets/main.css");
-const APP_ICON_SVG: Asset = asset!("/assets/icon.svg");
+const APP_ICON_SVG: Asset = asset!("/assets/logo.svg");
 
 const MAX_HISTORY_MESSAGES: i64 = 10000;
 // Maximum title length for chat rename (in characters, not bytes)
