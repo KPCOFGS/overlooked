@@ -150,7 +150,7 @@ Issues and PRs welcome. Bug reports especially welcome if they include the provi
 
 overlooked is built and maintained by [@KPCOFGS](https://github.com/KPCOFGS) in spare time, with no ads, telemetry, or paid tier. If it's useful to you, here are ways to keep it going:
 
-- ☕ **[Buy me a coffee](https://www.buymeacoffee.com/KPCOFGS)** — one-time tip
+- ☕ **[Buy me a coffee](https://buymeacoffee.com/shixiansheng)** — one-time tip
 - 💖 **[GitHub Sponsors](https://github.com/sponsors/KPCOFGS)** — recurring support
 - ⭐ **Star the repo** — costs nothing, helps a lot
 - 🐛 **Open an issue or PR** — bug reports and patches always welcome
