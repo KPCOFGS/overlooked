@@ -167,6 +167,13 @@ a {
     padding: 6px 6px 16px 6px;
 }
 
+.brand-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    flex-shrink: 0;
+}
+
 .logo {
     margin: 0;
     font-size: 22px;
@@ -751,22 +758,23 @@ a {
     background: transparent;
 }
 
+/* The row spans the full width of chat-messages so the bubble inside has room.
+   Direction reversal puts the user's avatar on the right edge while keeping
+   the bubble flowing leftward. */
 .message-row {
     display: flex;
     align-items: flex-end;
     gap: 10px;
-    max-width: 100%;
+    width: 100%;
     min-width: 0;
 }
 
 .message-row-user {
     flex-direction: row-reverse;
-    align-self: flex-end;
 }
 
 .message-row-assistant {
     flex-direction: row;
-    align-self: flex-start;
 }
 
 .avatar-msg {
@@ -777,7 +785,10 @@ a {
 }
 
 .message {
-    max-width: calc(100% - 50px);
+    /* fit-content lets short messages stay compact; max-width caps long ones
+       so they don't span the entire chat width. min-width:0 prevents flex
+       overflow when content has long unbreakable strings. */
+    max-width: min(720px, 75%);
     min-width: 0;
     width: fit-content;
     padding: 14px 20px;
@@ -786,7 +797,7 @@ a {
     font-size: 15.5px;
     color: var(--fg);
     border: 1px solid transparent;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
 }
 
 .user-message {
@@ -1113,6 +1124,19 @@ a {
 
 .model-manual-toggle .input {
     margin-top: 6px;
+}
+
+.advanced-summary {
+    cursor: pointer;
+    user-select: none;
+    padding: 6px 0;
+    color: var(--fg-muted);
+    font-size: 12.5px;
+    margin-top: 8px;
+}
+
+.advanced-summary:hover {
+    color: var(--accent);
 }
 
 .settings-section-title {

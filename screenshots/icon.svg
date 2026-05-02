@@ -1,29 +1,47 @@
 <svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="overlooked icon">
   <defs>
-    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#1a1c22"/>
-      <stop offset="100%" stop-color="#0e0f12"/>
+    <linearGradient id="bubble" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff9d5b"/>
+      <stop offset="100%" stop-color="#ff7d3b"/>
     </linearGradient>
-    <radialGradient id="irisGrad" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0%" stop-color="#ffae73"/>
-      <stop offset="60%" stop-color="#ff7d3b"/>
-      <stop offset="100%" stop-color="#c0531a"/>
-    </radialGradient>
+    <linearGradient id="bubble2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5a6175"/>
+      <stop offset="100%" stop-color="#3d4250"/>
+    </linearGradient>
   </defs>
 
-  <!-- rounded square background -->
-  <rect width="128" height="128" rx="28" ry="28" fill="url(#bgGrad)"/>
+  <!-- Back-most assistant bubble (slate, behind) -->
+  <path d="M 18 26
+           Q 18 18 26 18
+           L 78 18
+           Q 86 18 86 26
+           L 86 58
+           Q 86 66 78 66
+           L 54 66
+           L 42 78
+           L 46 66
+           L 26 66
+           Q 18 66 18 58
+           Z"
+        fill="url(#bubble2)"/>
 
-  <!-- eye outline -->
-  <path d="M22 64 C 42 36, 86 36, 106 64 C 86 92, 42 92, 22 64 Z"
-        fill="none" stroke="#ff7d3b" stroke-width="6" stroke-linejoin="round"/>
+  <!-- Foreground user bubble (rust orange, with tail bottom-right) -->
+  <path d="M 38 54
+           Q 38 46 46 46
+           L 102 46
+           Q 110 46 110 54
+           L 110 90
+           Q 110 98 102 98
+           L 86 98
+           L 100 112
+           L 78 98
+           L 46 98
+           Q 38 98 38 90
+           Z"
+        fill="url(#bubble)"/>
 
-  <!-- iris -->
-  <circle cx="64" cy="64" r="20" fill="url(#irisGrad)"/>
-
-  <!-- pupil -->
-  <circle cx="64" cy="64" r="9" fill="#0e0f12"/>
-
-  <!-- catch-light highlight -->
-  <circle cx="58" cy="58" r="3.2" fill="#ffffff" opacity="0.85"/>
+  <!-- Three white typing dots in foreground bubble -->
+  <circle cx="58" cy="72" r="5" fill="#ffffff"/>
+  <circle cx="74" cy="72" r="5" fill="#ffffff"/>
+  <circle cx="90" cy="72" r="5" fill="#ffffff"/>
 </svg>

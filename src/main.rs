@@ -12,6 +12,7 @@ use uuid::Uuid;
 
 const FAVICON: Asset = asset!("/assets/favicon.ico");
 const MAIN_CSS: Asset = asset!("/assets/main.css");
+const APP_ICON_SVG: Asset = asset!("/assets/icon.svg");
 
 const MAX_HISTORY_MESSAGES: i64 = 10000;
 // Maximum title length for chat rename (in characters, not bytes)
@@ -30,7 +31,96 @@ const MAX_SEARCH_QUERY_CHARS: usize = 500;
 const DEFAULT_ACCENT: &str = "#ff7d3b";
 
 fn main() {
-    dioxus::launch(App);
+    let cfg = build_desktop_config();
+    dioxus::LaunchBuilder::desktop()
+        .with_cfg(cfg)
+        .launch(App);
+}
+
+/// Build Dioxus desktop config with a procedurally-rendered window icon.
+/// Transparent background with two overlapping speech bubbles + typing dots.
+fn build_desktop_config() -> dioxus::desktop::Config {
+    use dioxus::desktop::tao::window::{Icon, WindowBuilder};
+    use dioxus::desktop::Config;
+
+    // Larger size for crisper rendering in dock/taskbar
+    const W: u32 = 128;
+    const H: u32 = 128;
+    let mut buf = vec![0u8; (W * H * 4) as usize]; // alpha = 0 by default → transparent
+
+    let in_rounded = |x: f32, y: f32, x0: f32, y0: f32, x1: f32, y1: f32, r: f32| -> bool {
+        if x < x0 || x > x1 || y < y0 || y > y1 {
+            return false;
+        }
+        let dx = if x < x0 + r {
+            x0 + r - x
+        } else if x > x1 - r {
+            x - (x1 - r)
+        } else {
+            0.0
+        };
+        let dy = if y < y0 + r {
+            y0 + r - y
+        } else if y > y1 - r {
+            y - (y1 - r)
+        } else {
+            0.0
+        };
+        dx * dx + dy * dy <= r * r
+    };
+
+    let in_triangle = |px: f32, py: f32, ax: f32, ay: f32, bx: f32, by: f32, cx: f32, cy: f32| -> bool {
+        let d1 = (px - bx) * (ay - by) - (ax - bx) * (py - by);
+        let d2 = (px - cx) * (by - cy) - (bx - cx) * (py - cy);
+        let d3 = (px - ax) * (cy - ay) - (cx - ax) * (py - ay);
+        let has_neg = (d1 < 0.0) || (d2 < 0.0) || (d3 < 0.0);
+        let has_pos = (d1 > 0.0) || (d2 > 0.0) || (d3 > 0.0);
+        !(has_neg && has_pos)
+    };
+
+    let put = |buf: &mut Vec<u8>, x: u32, y: u32, r: u8, g: u8, b: u8| {
+        let i = ((y * W + x) * 4) as usize;
+        buf[i] = r;
+        buf[i + 1] = g;
+        buf[i + 2] = b;
+        buf[i + 3] = 0xff;
+    };
+
+    for y in 0..H {
+        for x in 0..W {
+            let fx = x as f32 + 0.5;
+            let fy = y as f32 + 0.5;
+
+            // Back bubble (slate), with tail at bottom-left-ish
+            let back_bubble = in_rounded(fx, fy, 18.0, 18.0, 86.0, 66.0, 8.0);
+            let back_tail = in_triangle(fx, fy, 46.0, 64.0, 54.0, 64.0, 42.0, 78.0);
+            if back_bubble || back_tail {
+                put(&mut buf, x, y, 0x4d, 0x53, 0x65);
+            }
+
+            // Front bubble (rust orange), with tail at bottom-right
+            let front_bubble = in_rounded(fx, fy, 38.0, 46.0, 110.0, 98.0, 8.0);
+            let front_tail = in_triangle(fx, fy, 92.0, 96.0, 100.0, 96.0, 100.0, 112.0);
+            if front_bubble || front_tail {
+                put(&mut buf, x, y, 0xff, 0x7d, 0x3b);
+            }
+
+            // Three white dots in the front bubble
+            for dot_cx in [58.0_f32, 74.0, 90.0] {
+                let dx = fx - dot_cx;
+                let dy = fy - 72.0;
+                if dx * dx + dy * dy < 25.0 {
+                    put(&mut buf, x, y, 0xff, 0xff, 0xff);
+                }
+            }
+        }
+    }
+
+    let mut window = WindowBuilder::new().with_title("overlooked");
+    if let Ok(icon) = Icon::from_rgba(buf, W, H) {
+        window = window.with_window_icon(Some(icon));
+    }
+    Config::default().with_window(window)
 }
 
 /* ================= INPUT SANITIZATION ================= */
@@ -178,6 +268,53 @@ fn color_for(s: &str) -> String {
 
 fn initial_for(s: &str) -> String {
     s.chars().next().map(|c| c.to_uppercase().to_string()).unwrap_or_else(|| "?".into())
+}
+
+const MAX_AVATAR_BYTES: usize = 1_000_000; // 1 MB cap on the encoded image
+const MAX_AVATAR_DATA_URL_LEN: usize = 1_500_000; // base64 ≈ 1.34× source
+
+/// Detect a supported image MIME from magic bytes. Returns None for anything
+/// we don't whitelist.
+fn sniff_image_mime(bytes: &[u8]) -> Option<&'static str> {
+    if bytes.len() >= 8 && &bytes[0..8] == b"\x89PNG\r\n\x1a\n" {
+        return Some("image/png");
+    }
+    if bytes.len() >= 3 && &bytes[0..3] == b"\xff\xd8\xff" {
+        return Some("image/jpeg");
+    }
+    if bytes.len() >= 12 && &bytes[0..4] == b"RIFF" && &bytes[8..12] == b"WEBP" {
+        return Some("image/webp");
+    }
+    if bytes.len() >= 6 && (&bytes[0..6] == b"GIF87a" || &bytes[0..6] == b"GIF89a") {
+        return Some("image/gif");
+    }
+    None
+}
+
+/// Read a local file, validate it's a small image, and return a base64 data URL.
+fn load_avatar_from_path(path: &std::path::Path) -> Result<String, String> {
+    use base64::Engine;
+    let metadata = std::fs::metadata(path).map_err(|e| format!("Cannot read file: {e}"))?;
+    if !metadata.is_file() {
+        return Err("Not a regular file.".into());
+    }
+    if metadata.len() as usize > MAX_AVATAR_BYTES {
+        return Err(format!(
+            "Image is too large ({} bytes). Maximum is {} KB.",
+            metadata.len(),
+            MAX_AVATAR_BYTES / 1024
+        ));
+    }
+    let bytes = std::fs::read(path).map_err(|e| format!("Cannot read file: {e}"))?;
+    let mime = sniff_image_mime(&bytes).ok_or_else(|| {
+        "Unsupported image type. Use PNG, JPEG, WEBP, or GIF.".to_string()
+    })?;
+    let encoded = base64::engine::general_purpose::STANDARD.encode(&bytes);
+    let data_url = format!("data:{};base64,{}", mime, encoded);
+    if data_url.len() > MAX_AVATAR_DATA_URL_LEN {
+        return Err("Image data exceeds the storage limit.".into());
+    }
+    Ok(data_url)
 }
 
 /* ================= DATABASE ================= */
@@ -1678,6 +1815,7 @@ fn Sidebar(
     rsx! {
         div { class: "sidebar",
             div { class: "brand",
+                img { class: "brand-icon", src: APP_ICON_SVG, alt: "" }
                 h1 { class: "logo", "overlooked" }
             }
 
@@ -2461,21 +2599,44 @@ fn ProfileModal(show_profile: Signal<bool>, current_user: Signal<User>) -> Eleme
                 div { class: "avatar-row",
                     {avatar_preview}
                     div { class: "avatar-controls",
-                        input {
-                            class: "input",
-                            r#type: "text",
-                            placeholder: "data:image/png;base64,...  or paste any image data URL",
-                            value: "{local_avatar}",
-                            oninput: move |e| local_avatar.set(safe_truncate(&e.value(), 1_000_000)),
-                        }
-                        p { class: "dim-text hint-text",
-                            "Paste a base64 data URL (any image). Native file pickers come in a future build."
-                        }
                         div { class: "row",
-                            button { onclick: do_save_avatar, class: "primary", "Save avatar" }
+                            button {
+                                class: "primary",
+                                onclick: {
+                                    let mut local_avatar = local_avatar.clone();
+                                    let queue = queue.clone();
+                                    move |_| {
+                                        let picked = rfd::FileDialog::new()
+                                            .add_filter("Image", &["png", "jpg", "jpeg", "webp", "gif"])
+                                            .set_title("Choose avatar image")
+                                            .pick_file();
+                                        if let Some(path) = picked {
+                                            match load_avatar_from_path(&path) {
+                                                Ok(data_url) => local_avatar.set(data_url),
+                                                Err(e) => push_error(queue.clone(), e),
+                                            }
+                                        }
+                                    }
+                                },
+                                "Choose file..."
+                            }
                             button {
                                 onclick: move |_| local_avatar.set(String::new()),
                                 "Clear"
+                            }
+                            button { onclick: do_save_avatar, class: "primary", "Save" }
+                        }
+                        p { class: "dim-text hint-text",
+                            "PNG, JPEG, WEBP or GIF up to 1 MB. Stored locally in chat.db."
+                        }
+                        details {
+                            summary { class: "advanced-summary", "Advanced: paste data URL" }
+                            input {
+                                class: "input",
+                                r#type: "text",
+                                placeholder: "data:image/png;base64,...",
+                                value: "{local_avatar}",
+                                oninput: move |e| local_avatar.set(safe_truncate(&e.value(), MAX_AVATAR_DATA_URL_LEN)),
                             }
                         }
                     }
@@ -2514,6 +2675,12 @@ fn MessageComposer(
         }
         text.set(String::new());
         clear_epoch.set(clear_epoch() + 1);
+        // Imperatively clear the DOM textarea. The textarea is uncontrolled
+        // (no `value` attribute pushed back from Rust) so fast typing can't
+        // race re-renders, but that means we have to clear it ourselves on send.
+        let _ = document::eval(
+            "(function(){var t=document.querySelector('.chat-input');if(t){t.value='';t.style.height='auto';}})();",
+        );
         on_send.call(v);
     };
 
@@ -2528,7 +2695,6 @@ fn MessageComposer(
                     placeholder: "Message...",
                     rows: "1",
                     maxlength: "{MAX_MESSAGE_CHARS}",
-                    value: "{text}",
                     oninput: move |e| text.set(e.value()),
                     onkeydown: {
                         let mut do_send = do_send.clone();
