@@ -13,3 +13,8 @@ chat.db
 # Local session / debug files
 session.txt
 *.log
+
+# Release artifacts (uploaded to GitHub Releases, not committed)
+overlooked-v*.tar.gz
+overlooked-v*.zip
+overlooked-v*.sha256

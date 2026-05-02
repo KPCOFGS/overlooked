@@ -1,6 +1,6 @@
 [package]
 name = "overlooked"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["KPCOFGS <shixian_sheng-2@protonmail.com>"]
 edition = "2021"
 description = "Native Rust chat client for local Ollama and OpenAI-compatible APIs (DeepSeek, OpenAI). Light and dark themes, streaming, tiny binary."
