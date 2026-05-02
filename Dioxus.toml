@@ -3,7 +3,7 @@
 [web.app]
 
 # HTML title tag content
-title = "rusty-chat"
+title = "overlooked"
 
 # include `assets` in web platform
 [web.resource]

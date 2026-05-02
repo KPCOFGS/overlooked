@@ -1,23 +1,32 @@
 [package]
-name = "rusty-chat"
-version = "0.1.0"
+name = "overlooked"
+version = "0.2.0"
 authors = ["KPCOFGS <shixian_sheng-2@protonmail.com>"]
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "Native Rust chat client for local Ollama and OpenAI-compatible APIs (DeepSeek, OpenAI). Light and dark themes, streaming, tiny binary."
+license = "MIT"
+repository = "https://github.com/KPCOFGS/overlooked"
+keywords = ["chat", "llm", "ollama", "deepseek", "dioxus"]
+categories = ["gui", "command-line-utilities"]
 
 [dependencies]
 dioxus = { version = "0.7.1", features = [] }
-rusqlite = { version = "0.37.0", features = ["bundled"]}
+rusqlite = { version = "0.37.0", features = ["bundled"] }
 uuid = { version = "1.19.0", features = ["v4"] }
 tokio = { version = "1.48.0", features = ["full"] }
-reqwest = { version = "0.12", features = ["json"] }
+reqwest = { version = "0.12", features = ["json", "stream"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 futures-util = "0.3"
+argon2 = "0.5"
 
 [features]
 default = ["desktop"]
 web = ["dioxus/web"]
 desktop = ["dioxus/desktop"]
 mobile = ["dioxus/mobile"]
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+opt-level = 3

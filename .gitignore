@@ -1,0 +1,15 @@
+# Rust build output
+/target/
+
+# SQLite DB created at runtime
+chat.db
+*.db-journal
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Local session / debug files
+session.txt
+*.log

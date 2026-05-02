@@ -1,0 +1,29 @@
+<svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="overlooked icon">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a1c22"/>
+      <stop offset="100%" stop-color="#0e0f12"/>
+    </linearGradient>
+    <radialGradient id="irisGrad" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#ffae73"/>
+      <stop offset="60%" stop-color="#ff7d3b"/>
+      <stop offset="100%" stop-color="#c0531a"/>
+    </radialGradient>
+  </defs>
+
+  <!-- rounded square background -->
+  <rect width="128" height="128" rx="28" ry="28" fill="url(#bgGrad)"/>
+
+  <!-- eye outline -->
+  <path d="M22 64 C 42 36, 86 36, 106 64 C 86 92, 42 92, 22 64 Z"
+        fill="none" stroke="#ff7d3b" stroke-width="6" stroke-linejoin="round"/>
+
+  <!-- iris -->
+  <circle cx="64" cy="64" r="20" fill="url(#irisGrad)"/>
+
+  <!-- pupil -->
+  <circle cx="64" cy="64" r="9" fill="#0e0f12"/>
+
+  <!-- catch-light highlight -->
+  <circle cx="58" cy="58" r="3.2" fill="#ffffff" opacity="0.85"/>
+</svg>
