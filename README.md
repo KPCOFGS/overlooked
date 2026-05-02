@@ -38,16 +38,15 @@ If a release isn't up for your platform yet, see [Build from source](#build-from
 
 ## Screenshots
 
-<table>
-<tr>
-<td><img src="./screenshots/light-theme.png" alt="Light theme"/></td>
-<td><img src="./screenshots/dark-theme.png" alt="Dark theme"/></td>
-</tr>
-<tr>
-<td align="center"><sub>Light theme</sub></td>
-<td align="center"><sub>Dark theme</sub></td>
-</tr>
-</table>
+**Light theme**
+
+![Light theme](./screenshots/light_theme.png)
+
+**Dark theme**
+
+![Dark theme](./screenshots/dark_theme.png)
+
+More views (login, full settings panel) live in [`screenshots/`](./screenshots/).
 
 ## Supported providers
 
